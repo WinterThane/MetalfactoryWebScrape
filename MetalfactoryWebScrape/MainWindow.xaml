@@ -5,8 +5,18 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:MetalfactoryWebScrape"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="Metalfactory Web Scrape" WindowState="Maximized">
+    
+    <Grid ShowGridLines="True">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="55" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Button Grid.Row="0" Content="Make ICS file" Width="100" Height="30" Margin="10" 
+                HorizontalAlignment="Left" VerticalAlignment="Top" Click="Make_File_Button_Click" />
         
+        <TextBlock Grid.Row="0" Text="Metalfactory.ch web scraper" HorizontalAlignment="Center" VerticalAlignment="Center" />
+        
+        <TextBlock Grid.Row="1" Name="reportText" />
     </Grid>
 </Window>

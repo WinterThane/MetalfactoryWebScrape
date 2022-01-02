@@ -1,28 +1,45 @@
-﻿using System;
+﻿using HtmlAgilityPack;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 
 namespace MetalfactoryWebScrape
 {
-    /// <summary>
-    /// Interaction logic for MainWindow.xaml
-    /// </summary>
     public partial class MainWindow : Window
     {
         public MainWindow()
         {
             InitializeComponent();
+        }
+
+        private void Make_File_Button_Click(object sender, RoutedEventArgs e)
+        {
+            reportText.Text += "\nGet data from URL.";
+            var concerts = GetHtmlInfo("https://metalfactory.ch/events");
+
+            foreach (var item in concerts)
+            {
+                reportText.Text = item.ToString();
+            }
+        }
+
+        private static List<string> GetHtmlInfo(string url)
+        {
+            var htmlInfo = new List<string>();
+
+            HtmlWeb web = new HtmlWeb();
+            HtmlDocument doc = web.Load(url);
+
+            HtmlNodeCollection linkNodes = doc.DocumentNode.SelectNodes("//h2/a");
+            var baseUri = new Uri(url);
+
+            foreach (HtmlNode node in linkNodes)
+            {
+                string href = node.Attributes["href"].Value;
+                htmlInfo.Add(new Uri(baseUri, href).AbsoluteUri);
+            }
+
+            return htmlInfo;
         }
     }
 }
