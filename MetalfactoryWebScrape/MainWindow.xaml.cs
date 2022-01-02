@@ -1,6 +1,7 @@
 ﻿using HtmlAgilityPack;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using System.Windows;
 
 namespace MetalfactoryWebScrape
@@ -15,21 +16,23 @@ namespace MetalfactoryWebScrape
         private void Make_File_Button_Click(object sender, RoutedEventArgs e)
         {
             reportText.Text += "\nGet data from URL.";
-            var concerts = GetHtmlInfo("https://metalfactory.ch/events");
+            List<string> ConcertLinks = GetConcertLinks("https://metalfactory.ch/events");
+            Task<List<Concert>> Concerts = GetConcerts(ConcertLinks);
 
-            foreach (var item in concerts)
-            {
-                reportText.Text = item.ToString();
-            }
+
         }
 
-        private static List<string> GetHtmlInfo(string url)
+        private HtmlDocument GetDocument(string url)
         {
-            var htmlInfo = new List<string>();
-
             HtmlWeb web = new HtmlWeb();
             HtmlDocument doc = web.Load(url);
+            return doc;
+        }
 
+        private List<string> GetConcertLinks(string url)
+        {
+            var htmlInfo = new List<string>();
+            HtmlDocument doc = GetDocument(url);
             HtmlNodeCollection linkNodes = doc.DocumentNode.SelectNodes("//h2/a");
             var baseUri = new Uri(url);
 
@@ -40,6 +43,38 @@ namespace MetalfactoryWebScrape
             }
 
             return htmlInfo;
+        }
+
+        private async Task<List<Concert>> GetConcerts(List<string> detailURLs)
+        {
+            List<Concert> concerts = new List<Concert>();
+
+            try
+            {
+                foreach (var link in detailURLs)
+                {
+                    HtmlDocument doc = GetDocument(link);
+                    var concertBands = "//h1";
+                    var concertDate = "//span[contains(@class, \"ic-single-next\")]";
+                    var concertTime = "//span[contains(@class, \"ic-single-starttime\")]";
+                    var concertLocation = "//div[contains(@class, \"details ic-details\")]/p";
+                    var concert = new Concert
+                    {
+                        Bands = doc.DocumentNode.SelectSingleNode(concertBands).InnerHtml.Replace("&amp;", "&").Trim(),
+                        Date = doc.DocumentNode.SelectSingleNode(concertDate).InnerHtml.Replace("&nbsp;", " "),
+                        Time = doc.DocumentNode.SelectSingleNode(concertTime).InnerHtml,
+                        Location = doc.DocumentNode.SelectSingleNode(concertLocation).InnerHtml.Replace("&nbsp;", "").Trim().Remove(0, 35)
+                    };
+                    concerts.Add(concert);
+                    await Task.Delay(TimeSpan.FromSeconds(3));
+                }
+            }
+            catch (Exception ex)
+            {
+                reportText.Text = "Error in GetConcerts: " + ex.Message.ToString();
+            }
+
+            return concerts;
         }
     }
 }
