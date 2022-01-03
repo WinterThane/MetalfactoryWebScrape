@@ -15,11 +15,9 @@ namespace MetalfactoryWebScrape
 
         private void Make_File_Button_Click(object sender, RoutedEventArgs e)
         {
-            reportText.Text += "\nGet data from URL.";
             List<string> ConcertLinks = GetConcertLinks("https://metalfactory.ch/events");
             Task<List<Concert>> Concerts = GetConcerts(ConcertLinks);
-
-
+            _ = MakeCalendarFile(Concerts);
         }
 
         private HtmlDocument GetDocument(string url)
@@ -48,6 +46,7 @@ namespace MetalfactoryWebScrape
         private async Task<List<Concert>> GetConcerts(List<string> detailURLs)
         {
             List<Concert> concerts = new List<Concert>();
+            int counter = 1;
 
             try
             {
@@ -66,7 +65,9 @@ namespace MetalfactoryWebScrape
                         Location = doc.DocumentNode.SelectSingleNode(concertLocation).InnerHtml.Replace("&nbsp;", "").Trim().Remove(0, 35)
                     };
                     concerts.Add(concert);
-                    await Task.Delay(TimeSpan.FromSeconds(3));
+                    reportText.Text += counter.ToString() + ": " + concert.Bands + "\n";
+                    counter++;
+                    await Task.Delay(TimeSpan.FromSeconds(2));
                 }
             }
             catch (Exception ex)
@@ -75,6 +76,14 @@ namespace MetalfactoryWebScrape
             }
 
             return concerts;
+        }
+
+        private async Task MakeCalendarFile(Task<List<Concert>> concertList)
+        {
+            foreach (var item in await concertList)
+            {
+                
+            }
         }
     }
 }
