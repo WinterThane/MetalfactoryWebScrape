@@ -17,6 +17,6 @@
         
         <TextBlock Grid.Row="0" Text="Metalfactory.ch web scraper" HorizontalAlignment="Center" VerticalAlignment="Center" />
         
-        <TextBlock Grid.Row="1" Name="reportText" FontWeight="Bold" />
+        <TextBox Grid.Row="1" Name="reportText" FontWeight="Bold" TextWrapping="Wrap" AcceptsReturn="True" VerticalScrollBarVisibility="Visible" />
     </Grid>
 </Window>
