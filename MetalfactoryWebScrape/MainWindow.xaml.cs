@@ -19,7 +19,7 @@ namespace MetalfactoryWebScrape
         private void Make_File_Button_Click(object sender, RoutedEventArgs e)
         {
             List<Concert> ScrappedList = GetConcertLinks("https://metalfactory.ch/events");
-            List<Concert> ConcertsList = ScrappedList.GroupBy(x => x.DateTimeStart).Select(x => x.First()).ToList();
+            List<Concert> ConcertsList = ScrappedList.GroupBy(x => new { x.Bands, x.DateTimeStart }).Select(x => x.First()).ToList();
             StringBuilder AllConcerts = CreateEventFile(ConcertsList);
             SaveConcertsToFile(AllConcerts);
         }
@@ -90,8 +90,8 @@ namespace MetalfactoryWebScrape
             foreach (Concert concert in concertsList)
             {
                 sb.AppendLine("BEGIN:VEVENT");
-                sb.AppendLine("DTSTART:" + concert.DateTimeStart.ToString(DateFormat));
-                sb.AppendLine("DTEND:" + concert.DateTimeStart.AddHours(3).ToString(DateFormat));
+                sb.AppendLine("DTSTART:" + concert.DateTimeStart.AddHours(-1).ToString(DateFormat));
+                sb.AppendLine("DTEND:" + concert.DateTimeStart.AddHours(2).ToString(DateFormat));
                 sb.AppendLine("LOCATION:" + concert.Location);
                 sb.AppendLine("DTSTAMP:" + DateTime.Now.ToString(DateFormat));
                 sb.AppendLine("UID:" + DateTime.Now.ToString(DateFormat) + "WinterThane");
