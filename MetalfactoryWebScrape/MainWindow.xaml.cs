@@ -60,7 +60,7 @@ namespace MetalfactoryWebScrape
                 var concert = new Concert
                 {
                     
-                    Bands = concertBands.Replace("&amp;", "and"),
+                    Bands = concertBands.Replace("&amp;", "_and_"),
                     DateTimeStart = newDateTime,
                     Location = concertLocation
                 };
@@ -104,7 +104,7 @@ namespace MetalfactoryWebScrape
                 sb.AppendLine("END:VEVENT");
                 sb.AppendLine("END:VCALENDAR");
 
-                string tmpName1 = concert.Bands.Replace(",", "-");
+                string tmpName1 = concert.Bands.Replace(",", "_");
                 string tmpName2 = tmpName1.Replace(":", "-");
                 string newName;
                 if (tmpName2.Length > 100)
@@ -118,7 +118,7 @@ namespace MetalfactoryWebScrape
 
                 string tmpLoc = concert.Location.Replace(",", "_");
 
-                SaveConcertsToFiles(sb, newName.Replace(" ", "").Trim() + "__" + tmpLoc.Replace(" ", "").Trim());
+                SaveConcertsToFiles(sb, newName.Replace(" ", "_").Trim() + "___" + tmpLoc.Replace(" ", "_").Trim());
             }
 
             
