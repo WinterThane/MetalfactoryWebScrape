@@ -20,8 +20,7 @@ namespace MetalfactoryWebScrape
         {
             List<Concert> ScrappedList = GetConcertLinks("https://metalfactory.ch/events");
             List<Concert> ConcertsList = ScrappedList.GroupBy(x => new { x.Bands, x.DateTimeStart }).Select(x => x.First()).ToList();
-            StringBuilder AllConcerts = CreateEventFile(ConcertsList);
-            SaveConcertsToFile(AllConcerts);
+            CreateeventFiles(ConcertsList);
         }
 
         private HtmlDocument GetDocument(string url)
@@ -61,7 +60,7 @@ namespace MetalfactoryWebScrape
                 var concert = new Concert
                 {
                     
-                    Bands = concertBands.Replace("&amp;", "&"),
+                    Bands = concertBands.Replace("&amp;", "and"),
                     DateTimeStart = newDateTime,
                     Location = concertLocation
                 };
@@ -78,39 +77,54 @@ namespace MetalfactoryWebScrape
             get { return "yyyyMMddTHHmmssZ"; }
         }
 
-        private StringBuilder CreateEventFile(List<Concert> concertsList)
+        private void CreateeventFiles(List<Concert> concertsList)
         {
-            StringBuilder sb = new StringBuilder();
-            sb.AppendLine("BEGIN:VCALENDAR");
-            sb.AppendLine("VERSION:2.0");
-            sb.AppendLine("PRODID:WinterThane");
-            sb.AppendLine("CALSCALE:GREGORIAN");
-            sb.AppendLine("METHOD:PUBLISH");
+            
 
             foreach (Concert concert in concertsList)
             {
+                StringBuilder sb = new StringBuilder();
+                sb.AppendLine("BEGIN:VCALENDAR");
+                sb.AppendLine("PRODID:WinterThane");
+                sb.AppendLine("VERSION:2.0");
                 sb.AppendLine("BEGIN:VEVENT");
-                sb.AppendLine("DTSTART:" + concert.DateTimeStart.AddHours(-1).ToString(DateFormat));
-                sb.AppendLine("DTEND:" + concert.DateTimeStart.AddHours(2).ToString(DateFormat));
-                sb.AppendLine("LOCATION:" + concert.Location);
-                sb.AppendLine("DTSTAMP:" + DateTime.Now.ToString(DateFormat));
-                sb.AppendLine("UID:" + DateTime.Now.ToString(DateFormat) + "WinterThane");
-                sb.AppendLine("CREATED:" + DateTime.Now.ToString(DateFormat));
                 sb.AppendLine("DESCRIPTION:" + concert.Bands);
-                sb.AppendLine("LAST-MODIFIED:" + DateTime.Now.ToString(DateFormat));
+                sb.AppendLine("DTEND:" + concert.DateTimeStart.AddHours(2).ToString(DateFormat));
+                sb.AppendLine("DTSTAMP:" + DateTime.Now.ToString(DateFormat));
+                sb.AppendLine("DTSTART:" + concert.DateTimeStart.AddHours(-1).ToString(DateFormat));
+                sb.AppendLine("LOCATION:" + concert.Location);
                 sb.AppendLine("SEQUENCE:0");
-                sb.AppendLine("STATUS:CONFIRMED");
                 sb.AppendLine("SUMMARY:" + concert.Bands);
-                sb.AppendLine("TRANSP:OPAQUE");
+                sb.AppendLine("UID:" + DateTime.Now.ToString(DateFormat) + "WinterThane");
+                sb.AppendLine("BEGIN:VALARM");
+                sb.AppendLine("ACTION:DISPLAY");
+                sb.AppendLine("DESCRIPTION:REMINDER");
+                sb.AppendLine("TRIGGER:-PT72H");
+                sb.AppendLine("END:VALARM");
                 sb.AppendLine("END:VEVENT");
+                sb.AppendLine("END:VCALENDAR");
+
+                string tmpName1 = concert.Bands.Replace(",", "-");
+                string tmpName2 = tmpName1.Replace(":", "-");
+                string newName;
+                if (tmpName2.Length > 100)
+                {
+                    newName = tmpName2.Substring(0, 100);
+                }
+                else
+                {
+                    newName = tmpName2;
+                }
+
+                string tmpLoc = concert.Location.Replace(",", "_");
+
+                SaveConcertsToFiles(sb, newName.Replace(" ", "").Trim() + "__" + tmpLoc.Replace(" ", "").Trim());
             }
 
-            sb.AppendLine("END:VCALENDAR");
-
-            return sb;
+            
         }
 
-        private void SaveConcertsToFile(StringBuilder allConcerts)
+        private void SaveConcertsToFiles(StringBuilder allConcerts, string name)
         {
             string basePath = AppDomain.CurrentDomain.BaseDirectory;
             string destinationPath = Path.Combine(basePath, "EventFile");
@@ -120,8 +134,16 @@ namespace MetalfactoryWebScrape
                 Directory.CreateDirectory(destinationPath);
             }
 
-            string fullPath = destinationPath + "\\events.ics";
-            File.WriteAllText(fullPath, allConcerts.ToString());
+            string fullPath = destinationPath + "\\" + name + ".ics";
+            try
+            {
+                File.WriteAllText(fullPath, allConcerts.ToString());
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message, "name: " + name);
+            }
+            
         }
     }
 }
